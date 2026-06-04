@@ -19,14 +19,28 @@
         header {
             display: flex; justify-content: space-between; align-items: center;
             padding: 16px 24px; background: white; box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-            border-radius: 8px; margin-bottom: 20px;
+            border-radius: 8px; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
         }
         .logo { font-size: 24px; font-weight: 700; color: #1a73e8; }
+        .dev-mode {
+            padding: 8px 16px;
+            background: #fbbc05;
+            color: #000;
+            border: none;
+            border-radius: 9999px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .dev-mode.active {
+            background: #34a853;
+            color: white;
+        }
         .chat-container {
             background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             height: 70vh; display: flex; flex-direction: column;
         }
-        .chat-header { padding: 16px 24px; border-bottom: 1px solid #dadce0; font-weight: 500; }
+        .chat-header { padding: 16px 24px; border-bottom: 1px solid #dadce0; font-weight: 500; display: flex; justify-content: space-between; }
         .messages {
             flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;
         }
@@ -46,20 +60,31 @@
     <div class="container">
         <header>
             <div class="logo">Monstekai</div>
-            <div id="user-info" style="display: none;">
-                <span id="user-name"></span>
-                <button onclick="signOut()" class="google-signin">Sign Out</button>
+            
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <button id="dev-button" class="dev-mode" onclick="toggleDevMode()">
+                    🔧 Dev Mode: OFF
+                </button>
+                
+                <div id="user-info" style="display: none; align-items: center; gap: 10px;">
+                    <span id="user-name"></span>
+                    <button onclick="signOut()" class="google-signin">Sign Out</button>
+                </div>
+                
+                <button id="signin-button" class="google-signin">Sign in with Google</button>
             </div>
-            <button id="signin-button" class="google-signin">Sign in with Google</button>
         </header>
 
         <div class="chat-container">
-            <div class="chat-header"><strong>Gemini AI</strong> — Powered by Google</div>
+            <div class="chat-header">
+                <strong>Gemini AI</strong> 
+                <span id="mode-status" style="font-size: 14px; color: #666;">Normal Mode</span>
+            </div>
             
             <div id="messages" class="messages">
                 <div class="welcome" style="text-align:center;padding:60px 20px;">
                     <h1>Welcome to Monstekai</h1>
-                    <p>Sign in with Google and start chatting with real Gemini AI</p>
+                    <p>Sign in with Google or enable Dev Mode to chat with Gemini AI</p>
                 </div>
             </div>
 
@@ -72,6 +97,7 @@
 
     <script>
         let currentUser = null;
+        let devMode = false;
         const GEMINI_API_KEY = "AQ.Ab8RN6Kfjxr6ojih0grc8TE4exAnbpFTmLlGQJYRUSxZ2FY-Ww";
 
         window.onload = function () {
@@ -79,8 +105,30 @@
                 client_id: '25220349106-ek5146mgbbu0f3nc0r212704he94t09.apps.googleusercontent.com',
                 callback: handleCredentialResponse
             });
-            google.accounts.id.renderButton(document.getElementById('signin-button'), { theme: "outline", size: "large", text: "signin_with" });
+            google.accounts.id.renderButton(document.getElementById('signin-button'), { 
+                theme: "outline", 
+                size: "large", 
+                text: "signin_with" 
+            });
         };
+
+        function toggleDevMode() {
+            devMode = !devMode;
+            const btn = document.getElementById('dev-button');
+            const status = document.getElementById('mode-status');
+            
+            if (devMode) {
+                btn.textContent = "🔧 Dev Mode: ON";
+                btn.classList.add('active');
+                status.textContent = "Dev Mode Active";
+                status.style.color = "#34a853";
+            } else {
+                btn.textContent = "🔧 Dev Mode: OFF";
+                btn.classList.remove('active');
+                status.textContent = "Normal Mode";
+                status.style.color = "#666";
+            }
+        }
 
         function handleCredentialResponse(response) {
             currentUser = response;
@@ -88,21 +136,22 @@
             document.getElementById('user-name').textContent = payload.name || 'User';
             document.getElementById('user-info').style.display = 'flex';
             document.getElementById('signin-button').style.display = 'none';
-            addMessage("ai", "Hi! I'm Gemini. What would you like to talk about?");
+            addMessage("ai", "Hi! I'm Gemini. How can I help you today?");
         }
 
         function signOut() {
             currentUser = null;
             document.getElementById('user-info').style.display = 'none';
             document.getElementById('signin-button').style.display = 'block';
-            document.getElementById('messages').innerHTML = `<div class="welcome" style="text-align:center;padding:60px 20px;"><h1>Welcome to Monstekai</h1><p>Sign in with Google and start chatting with real Gemini AI</p></div>`;
         }
 
         async function sendMessage() {
             const input = document.getElementById('user-input');
             const message = input.value.trim();
-            if (!message || !currentUser) {
-                if (!currentUser) alert("Please sign in with Google first!");
+            if (!message) return;
+
+            if (!devMode && !currentUser) {
+                alert("Please sign in with Google or enable Dev Mode!");
                 return;
             }
 
@@ -120,10 +169,10 @@
 
                 const data = await res.json();
                 const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't generate a response.";
-                removeTypingIndicator(typingId);
+                removeTypingIndicator();
                 addMessage("ai", reply);
             } catch (e) {
-                removeTypingIndicator(typingId);
+                removeTypingIndicator();
                 addMessage("ai", "⚠️ Error connecting to Gemini API.");
             }
         }
@@ -133,7 +182,7 @@
             div.className = `message ${sender}`;
             div.textContent = text;
             document.getElementById('messages').appendChild(div);
-            div.scrollIntoView();
+            div.scrollIntoView({ behavior: "smooth" });
         }
 
         function addTypingIndicator() {
@@ -142,7 +191,7 @@
             div.className = 'message ai';
             div.textContent = 'Gemini is thinking...';
             document.getElementById('messages').appendChild(div);
-            return 'typing';
+            return div;
         }
 
         function removeTypingIndicator() {
