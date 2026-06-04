@@ -3,22 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monstekai</title>
+    <title>Monstekai - AI Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap');
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 50px;
-            background-color: #f0f0f0;
+            font-family: 'Google Sans', system-ui, sans-serif;
         }
-        h1 {
-            color: #333;
+        .gemini-gradient {
+            background: linear-gradient(135deg, #4285f4, #34a853, #fbbc05, #ea4335);
         }
     </style>
 </head>
-<body>
-    <h1>Welcome to Monstekai!</h1>
-    <p>This is a simple HTML file created in the repository.</p>
-    <p>Feel free to customize it.</p>
+<body class="bg-gray-50">
+    <!-- Top Navigation -->
+    <nav class="bg-white border-b border-gray-200 shadow-sm">
+        <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">G</div>
+                <span class="text-2xl font-semibold text-gray-900">Monstekai</span>
+            </div>
+            <div class="flex items-center gap-6 text-sm">
+                <a href="#" class="text-gray-600 hover:text-gray-900">Gemini</a>
+                <a href="#" class="text-gray-600 hover:text-gray-900">For Developers</a>
+                <a href="#" class="text-gray-600 hover:text-gray-900">Pricing</a>
+            </div>
+            <div>
+                <button onclick="simulateGoogleSignIn()" 
+                        class="flex items-center gap-2 bg-white border border-gray-300 hover:border-gray-400 px-5 py-2.5 rounded-full text-sm font-medium transition-all">
+                    <img src="https://www.google.com/images/branding/googleg/1x/googleg_standard_color_32dp.png" alt="Google" class="w-5 h-5">
+                    <span>Sign in with Google</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto pt-20 px-6">
+        <!-- Hero -->
+        <div class="text-center mb-16">
+            <div class="inline-flex items-center gap-2 bg-white rounded-3xl px-6 py-2 shadow-sm mb-6">
+                <div class="gemini-gradient text-white text-xs font-medium px-3 py-1 rounded-3xl">NEW</div>
+                <span class="text-gray-600 text-sm">Powered by advanced AI</span>
+            </div>
+            <h1 class="text-6xl font-bold text-gray-900 mb-4 tracking-tight">Hello, I'm Monstekai</h1>
+            <p class="text-2xl text-gray-600 max-w-xl mx-auto">Your helpful AI companion. Ask me anything.</p>
+        </div>
+
+        <!-- Chat Demo -->
+        <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+            <!-- Chat Header -->
+            <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-5 flex items-center gap-3">
+                <div class="w-9 h-9 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center">
+                    <i class="fa-solid fa-sparkles text-xl"></i>
+                </div>
+                <div>
+                    <div class="font-semibold">Monstekai</div>
+                    <div class="text-xs opacity-75">Always here to help</div>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div id="chat" class="h-96 p-8 overflow-y-auto bg-gray-50 space-y-8">
+                <div class="flex gap-4">
+                    <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex-shrink-0 flex items-center justify-center text-white text-sm font-bold">M</div>
+                    <div class="bg-white rounded-3xl rounded-tl-none px-6 py-4 max-w-[80%]">
+                        Hi! I'm Monstekai, inspired by Gemini. How can I help you today?
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="p-6 border-t bg-white">
+                <div class="flex gap-3">
+                    <input id="user-input" type="text" 
+                           class="flex-1 bg-gray-100 border border-gray-200 focus:border-blue-500 rounded-full px-6 py-4 text-lg outline-none"
+                           placeholder="Message Monstekai...">
+                    <button onclick="sendMessage()"
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-8 rounded-full flex items-center justify-center transition-all active:scale-95">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+                <div class="text-center text-[10px] text-gray-400 mt-3">
+                    Monstekai can make mistakes. Consider checking important info.
+                </div>
+            </div>
+        </div>
+
+        <!-- Google Style Buttons -->
+        <div class="flex justify-center gap-4 mt-10">
+            <button onclick="simulateGoogleSignIn()" 
+                    class="flex items-center gap-3 bg-white border border-gray-300 hover:shadow-md transition-all px-8 py-4 rounded-2xl text-sm font-medium">
+                <img src="https://www.google.com/images/branding/googleg/1x/googleg_standard_color_32dp.png" alt="Google" class="w-6 h-6">
+                Continue with Google
+            </button>
+            
+            <button onclick="tryDemo()" 
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl text-sm font-medium transition-all flex items-center gap-2">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                Try Demo
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function sendMessage() {
+            const input = document.getElementById('user-input');
+            const chat = document.getElementById('chat');
+            
+            if (input.value.trim() === '') return;
+            
+            // User message
+            chat.innerHTML += `
+                <div class="flex justify-end">
+                    <div class="bg-blue-600 text-white rounded-3xl rounded-tr-none px-6 py-4 max-w-[75%]">
+                        ${input.value}
+                    </div>
+                </div>
+            `;
+            
+            // Simulate AI response
+            setTimeout(() => {
+                chat.innerHTML += `
+                    <div class="flex gap-4">
+                        <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex-shrink-0 flex items-center justify-center text-white text-sm font-bold">M</div>
+                        <div class="bg-white rounded-3xl rounded-tl-none px-6 py-4 max-w-[80%]">
+                            That's an interesting question! As an AI inspired by Gemini, I'd say...
+                            <br><br>
+                            How else can I assist you today?
+                        </div>
+                    </div>
+                `;
+                chat.scrollTop = chat.scrollHeight;
+            }, 800);
+            
+            input.value = '';
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function simulateGoogleSignIn() {
+            alert("✅ Signed in with Google! (Demo mode)");
+        }
+
+        function tryDemo() {
+            alert("🚀 Demo chat activated! Type in the input box above.");
+        }
+
+        // Allow Enter key to send
+        document.getElementById('user-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
 </body>
 </html>
