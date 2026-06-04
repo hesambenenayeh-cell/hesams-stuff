@@ -6,6 +6,7 @@
     <title>Monstekai - AI Assistant</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap');
         body {
@@ -29,13 +30,7 @@
                 <a href="#" class="text-gray-600 hover:text-gray-900">For Developers</a>
                 <a href="#" class="text-gray-600 hover:text-gray-900">Pricing</a>
             </div>
-            <div>
-                <button onclick="simulateGoogleSignIn()" 
-                        class="flex items-center gap-2 bg-white border border-gray-300 hover:border-gray-400 px-5 py-2.5 rounded-full text-sm font-medium transition-all">
-                    <img src="https://www.google.com/images/branding/googleg/1x/googleg_standard_color_32dp.png" alt="Google" class="w-5 h-5">
-                    <span>Sign in with Google</span>
-                </button>
-            </div>
+            <div id="google-signin-container"></div>
         </div>
     </nav>
 
@@ -92,11 +87,7 @@
 
         <!-- Google Style Buttons -->
         <div class="flex justify-center gap-4 mt-10">
-            <button onclick="simulateGoogleSignIn()" 
-                    class="flex items-center gap-3 bg-white border border-gray-300 hover:shadow-md transition-all px-8 py-4 rounded-2xl text-sm font-medium">
-                <img src="https://www.google.com/images/branding/googleg/1x/googleg_standard_color_32dp.png" alt="Google" class="w-6 h-6">
-                Continue with Google
-            </button>
+            <div id="google-signin-hero"></div>
             
             <button onclick="tryDemo()" 
                     class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl text-sm font-medium transition-all flex items-center gap-2">
@@ -107,6 +98,15 @@
     </div>
 
     <script>
+        function handleCredentialResponse(response) {
+            console.log("Encoded JWT ID token: " + response.credential);
+            // You can send this token to your backend for verification
+            alert("✅ Successfully signed in with Google!\n\nToken received (for demo). In production, send this to your server.");
+            
+            // Optionally hide sign-in buttons
+            document.getElementById('google-signin-container').innerHTML = '<span class="text-green-600 font-medium">Signed in ✓</span>';
+        }
+
         function sendMessage() {
             const input = document.getElementById('user-input');
             const chat = document.getElementById('chat');
@@ -141,17 +141,38 @@
             chat.scrollTop = chat.scrollHeight;
         }
 
-        function simulateGoogleSignIn() {
-            alert("✅ Signed in with Google! (Demo mode)");
-        }
-
         function tryDemo() {
             alert("🚀 Demo chat activated! Type in the input box above.");
         }
 
+        // Initialize Google Sign-In
+        window.onload = function () {
+            google.accounts.id.initialize({
+                client_id: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',  // ← REPLACE THIS
+                callback: handleCredentialResponse
+            });
+
+            // Render button in navbar
+            google.accounts.id.renderButton(
+                document.getElementById('google-signin-container'),
+                { theme: "outline", size: "large", text: "signin_with", shape: "rectangular", logo_alignment: "left" }
+            );
+
+            // Render button in hero
+            google.accounts.id.renderButton(
+                document.getElementById('google-signin-hero'),
+                { theme: "filled_blue", size: "large", text: "continue_with", shape: "rectangular", width: "300" }
+            );
+        };
+
         // Allow Enter key to send
-        document.getElementById('user-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') sendMessage();
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.getElementById('user-input');
+            if (input) {
+                input.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') sendMessage();
+                });
+            }
         });
     </script>
 </body>
