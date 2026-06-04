@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monstekai - Gemini AI</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap');
+        
+        body {
+            font-family: 'Google Sans', system-ui, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #f0f4f8 0%, #e8f0fe 100%);
+            color: #202124;
+        }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 24px; background: white; box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            border-radius: 8px; margin-bottom: 20px;
+        }
+        .logo { font-size: 24px; font-weight: 700; color: #1a73e8; }
+        .chat-container {
+            background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            height: 70vh; display: flex; flex-direction: column;
+        }
+        .chat-header { padding: 16px 24px; border-bottom: 1px solid #dadce0; font-weight: 500; }
+        .messages {
+            flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px;
+        }
+        .message {
+            max-width: 80%; padding: 12px 16px; border-radius: 18px; line-height: 1.5;
+        }
+        .user { align-self: flex-end; background: #1a73e8; color: white; border-bottom-right-radius: 4px; }
+        .ai { align-self: flex-start; background: #f1f3f4; border-bottom-left-radius: 4px; }
+        .input-area { padding: 16px 24px; border-top: 1px solid #dadce0; display: flex; gap: 12px; }
+        input { flex: 1; padding: 14px 20px; border: 1px solid #dadce0; border-radius: 9999px; font-size: 16px; }
+        button { padding: 12px 32px; background: #1a73e8; color: white; border: none; border-radius: 9999px; cursor: pointer; font-weight: 500; }
+        button:hover { background: #185abc; }
+        .google-signin { padding: 10px 24px; background: white; color: #1a73e8; border: 1px solid #dadce0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">Monstekai</div>
+            <div id="user-info" style="display: none;">
+                <span id="user-name"></span>
+                <button onclick="signOut()" class="google-signin">Sign Out</button>
+            </div>
+            <button id="signin-button" class="google-signin">Sign in with Google</button>
+        </header>
+
+        <div class="chat-container">
+            <div class="chat-header"><strong>Gemini AI</strong> — Powered by Google</div>
+            
+            <div id="messages" class="messages">
+                <div class="welcome" style="text-align:center;padding:60px 20px;">
+                    <h1>Welcome to Monstekai</h1>
+                    <p>Sign in with Google and start chatting with real Gemini AI</p>
+                </div>
+            </div>
+
+            <div class="input-area">
+                <input type="text" id="user-input" placeholder="Ask Gemini anything..." onkeypress="if(event.key === 'Enter') sendMessage()">
+                <button onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        const GEMINI_API_KEY = "AQ.Ab8RN6Kfjxr6ojih0grc8TE4exAnbpFTmLlGQJYRUSxZ2FY-Ww";
+
+        window.onload = function () {
+            google.accounts.id.initialize({
+                client_id: '25220349106-ek5146mgbbu0f3nc0r212704he94t09.apps.googleusercontent.com',
+                callback: handleCredentialResponse
+            });
+            google.accounts.id.renderButton(document.getElementById('signin-button'), { theme: "outline", size: "large", text: "signin_with" });
+        };
+
+        function handleCredentialResponse(response) {
+            currentUser = response;
+            const payload = JSON.parse(atob(response.credential.split('.')[1]));
+            document.getElementById('user-name').textContent = payload.name || 'User';
+            document.getElementById('user-info').style.display = 'flex';
+            document.getElementById('signin-button').style.display = 'none';
+            addMessage("ai", "Hi! I'm Gemini. What would you like to talk about?");
+        }
+
+        function signOut() {
+            currentUser = null;
+            document.getElementById('user-info').style.display = 'none';
+            document.getElementById('signin-button').style.display = 'block';
+            document.getElementById('messages').innerHTML = `<div class="welcome" style="text-align:center;padding:60px 20px;"><h1>Welcome to Monstekai</h1><p>Sign in with Google and start chatting with real Gemini AI</p></div>`;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('user-input');
+            const message = input.value.trim();
+            if (!message || !currentUser) {
+                if (!currentUser) alert("Please sign in with Google first!");
+                return;
+            }
+
+            addMessage("user", message);
+            input.value = "";
+
+            const typingId = addTypingIndicator();
+
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: message }] }] })
+                });
+
+                const data = await res.json();
+                const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't generate a response.";
+                removeTypingIndicator(typingId);
+                addMessage("ai", reply);
+            } catch (e) {
+                removeTypingIndicator(typingId);
+                addMessage("ai", "⚠️ Error connecting to Gemini API.");
+            }
+        }
+
+        function addMessage(sender, text) {
+            const div = document.createElement('div');
+            div.className = `message ${sender}`;
+            div.textContent = text;
+            document.getElementById('messages').appendChild(div);
+            div.scrollIntoView();
+        }
+
+        function addTypingIndicator() {
+            const div = document.createElement('div');
+            div.id = 'typing';
+            div.className = 'message ai';
+            div.textContent = 'Gemini is thinking...';
+            document.getElementById('messages').appendChild(div);
+            return 'typing';
+        }
+
+        function removeTypingIndicator() {
+            const typing = document.getElementById('typing');
+            if (typing) typing.remove();
+        }
+    </script>
+</body>
+</html>
