@@ -100,11 +100,9 @@
     <script>
         function handleCredentialResponse(response) {
             console.log("Encoded JWT ID token: " + response.credential);
-            // You can send this token to your backend for verification
-            alert("✅ Successfully signed in with Google!\n\nToken received (for demo). In production, send this to your server.");
+            alert("✅ Successfully signed in with Google!\n\nID Token received.\n\nIn a real app, send this to your backend for verification.");
             
-            // Optionally hide sign-in buttons
-            document.getElementById('google-signin-container').innerHTML = '<span class="text-green-600 font-medium">Signed in ✓</span>';
+            document.getElementById('google-signin-container').innerHTML = '<span class="text-green-600 font-medium flex items-center gap-2"><i class="fa-solid fa-check-circle"></i> Signed in</span>';
         }
 
         function sendMessage() {
@@ -113,7 +111,6 @@
             
             if (input.value.trim() === '') return;
             
-            // User message
             chat.innerHTML += `
                 <div class="flex justify-end">
                     <div class="bg-blue-600 text-white rounded-3xl rounded-tr-none px-6 py-4 max-w-[75%]">
@@ -122,57 +119,52 @@
                 </div>
             `;
             
-            // Simulate AI response
             setTimeout(() => {
                 chat.innerHTML += `
                     <div class="flex gap-4">
                         <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex-shrink-0 flex items-center justify-center text-white text-sm font-bold">M</div>
                         <div class="bg-white rounded-3xl rounded-tl-none px-6 py-4 max-w-[80%]">
-                            That's an interesting question! As an AI inspired by Gemini, I'd say...
-                            <br><br>
-                            How else can I assist you today?
+                            Great question! As Monstekai (Gemini-style AI), here's what I think...<br><br>
+                            How else can I help you today?
                         </div>
                     </div>
                 `;
                 chat.scrollTop = chat.scrollHeight;
-            }, 800);
+            }, 700);
             
             input.value = '';
             chat.scrollTop = chat.scrollHeight;
         }
 
         function tryDemo() {
-            alert("🚀 Demo chat activated! Type in the input box above.");
+            alert("Demo mode active! Use the chat box above.");
         }
 
-        // Initialize Google Sign-In
+        // Google Sign-In Initialization
         window.onload = function () {
+            // ←←←←←←←←←←←←←←←←←←←←←←←←←←←←←←
+            // REPLACE THIS WITH YOUR CLIENT ID
+            const CLIENT_ID = 'YOUR_CLIENT_ID_HERE.apps.googleusercontent.com';
+            
             google.accounts.id.initialize({
-                client_id: '25220349106-ek5l46mgbpbu0f3nc0r212704he94t09.apps.googleusercontent.com',  // ← REPLACE THIS
+                client_id: CLIENT_ID,
                 callback: handleCredentialResponse
             });
 
-            // Render button in navbar
             google.accounts.id.renderButton(
                 document.getElementById('google-signin-container'),
-                { theme: "outline", size: "large", text: "signin_with", shape: "rectangular", logo_alignment: "left" }
+                { theme: "outline", size: "large", text: "signin_with", shape: "rectangular" }
             );
 
-            // Render button in hero
             google.accounts.id.renderButton(
                 document.getElementById('google-signin-hero'),
-                { theme: "filled_blue", size: "large", text: "continue_with", shape: "rectangular", width: "300" }
+                { theme: "filled_blue", size: "large", text: "continue_with", shape: "rectangular", width: 280 }
             );
         };
 
-        // Allow Enter key to send
         document.addEventListener('DOMContentLoaded', function() {
             const input = document.getElementById('user-input');
-            if (input) {
-                input.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') sendMessage();
-                });
-            }
+            if (input) input.addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
         });
     </script>
 </body>
